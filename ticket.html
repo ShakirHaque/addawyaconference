@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>টিকিট জেনারেটর</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Global Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body and overall layout */
+        body {
+            font-family: 'Poppins', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%); /* Soft gradient background */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Main container for the entire page content */
+        .container {
+            width: 100%;
+            max-width: 720px; /* Adjusted max-width for single column layout */
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12); /* Prominent shadow */
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header section styling */
+        .header {
+            background: linear-gradient(120deg, #2563eb 0%, #1d4ed8 100%); /* Blue gradient */
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative shapes in header */
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .header::after {
+            content: "";
+            position: absolute;
+            bottom: -80px;
+            left: -50px;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Logo and title in header */
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .logo i { /* Icon in logo */
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main content area (form and ticket display) */
+        .content {
+            display: grid; /* Use grid for layout */
+            grid-template-columns: 1fr; /* Single column layout for all screen sizes */
+            gap: 30px; /* Space between form and ticket display */
+            padding: 40px;
+        }
+
+        /* Responsive adjustment for content grid (no change needed here as it's already 1fr) */
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+        }
+
+        /* Form container styling */
+        .form-area {
+            background: #f9fafc;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+            position: relative; /* For loading overlay */
+        }
+
+        /* Form header within form-area */
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            color: #1d4ed8;
+        }
+
+        .form-header i {
+            font-size: 1.4rem;
+        }
+
+        .form-header h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+
+        /* Form group (label + input) spacing */
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        /* Label styling within form */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+
+        /* Input styling within form */
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Search button styling */
+        .search-btn {
+            background: linear-gradient(120deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(29, 78, 216, 0.3);
+        }
+
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(29, 78, 216, 0.4);
+        }
+
+        .search-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(120deg, #94a3b8 0%, #64748b 100%); /* Grey gradient when disabled */
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Features section styling */
+        .features {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .features h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .feature-list i { /* Checkmark icon color */
+            color: #10b981;
+            margin-top: 3px;
+        }
+
+        /* Ticket preview / display styling (this will be the dynamic content) */
+        .ticket-display {
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            /* height: 100%; Removed fixed height for flexibility in stacked layout */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            margin-top: 30px; /* Add margin top for spacing when stacked */
+        }
+        /* Hidden state for ticket display */
+        .ticket-display.hidden {
+            display: none;
+        }
+
+        /* Decorative shape in ticket preview header */
+        .ticket-display::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(120deg, rgba(37, 99, 235, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%);
+            border-radius: 0 0 0 100%;
+        }
+
+        /* Preview header inside ticket display */
+        .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            color: #1d4ed8;
+        }
+
+        .preview-header i {
+            font-size: 1.4rem;
+        }
+
+        .preview-header h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+
+        /* Actual ticket design content */
+        .ticket-design-content {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            flex-grow: 1; /* Allows content to expand */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            animation: fadeIn 0.8s ease-out; /* Fade-in animation for the ticket */
+        }
+
+        /* Watermark (optional, can be text or an icon) */
+        .watermark {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.08; /* More subtle */
+            font-size: 6rem;
+            font-weight: 800;
+            color: #1d4ed8;
+            transform: rotate(-25deg);
+            pointer-events: none;
+            user-select: none; /* Prevent text selection */
+        }
+
+        /* Main ticket header (inside ticket-design-content) */
+        .ticket-main-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .ticket-main-header h3 {
+            font-size: 1.8rem; /* More balanced heading size */
+            color: #1d4ed8;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .ticket-main-header p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Ticket info grid */
+        .ticket-info {
+            display: grid;
+            grid-template-columns: auto 1fr; /* Label on left, value on right */
+            gap: 15px 20px;
+            margin-bottom: 25px;
+            flex-grow: 1; /* Allows info to push serial to bottom */
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #475569;
+            text-align: left;
+        }
+
+        .info-value {
+            color: #1e293b;
+            font-weight: 500;
+            text-align: right; /* Align values to the right */
+            word-break: break-all; /* Ensure long values wrap */
+        }
+        /* Specific styling for User ID in ticket info */
+        .info-value.user-id-value {
+            color: #6b46c1; /* Purple color for User ID */
+            font-weight: 600;
+        }
+        /* Specific styling for Serial Number in ticket info (if displayed here) */
+        .info-value.serial-value {
+             color: #1d4ed8; /* Blue color for serial */
+             font-weight: 700;
+             font-size: 1.1rem;
+        }
+
+        /* Serial number section at bottom of ticket */
+        .serial-number-section {
+            text-align: center;
+            margin-top: auto; /* Pushes to bottom */
+            padding: 15px;
+            background: linear-gradient(120deg, rgba(37, 99, 235, 0.08) 0%, rgba(29, 78, 216, 0.08) 100%);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .serial-number-section p {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .serial-number-section h4 {
+            font-size: 2rem; /* Larger for prominence */
+            color: #1d4ed8;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        /* Important note section below serial number */
+        .ticket-note {
+            background: #fffbeb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #f59e0b; /* Yellow border */
+            font-size: 0.9rem;
+            color: #b45309; /* Darker orange text */
+        }
+
+        .ticket-note strong {
+            color: #b45309;
+        }
+
+        /* Footer styling */
+        .footer {
+            background: #f1f5f9;
+            padding: 25px 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .footer p {
+            margin-bottom: 5px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .contact-item i {
+            color: #2563eb; /* Blue icon */
+        }
+
+        /* General Message Area */
+        .message {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            animation: fadeIn 0.5s ease-out; /* Fade in animation for messages */
+        }
+        .message.error {
+            background-color: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #f87171;
+        }
+        .message.info {
+            background-color: #d1fae5;
+            color: #059669;
+            border: 1px solid #34d399;
+        }
+        /* Hidden utility */
+        .hidden {
+            display: none;
+        }
+
+        /* Loading Overlay styles */
+        .loading-overlay {
+            position: absolute; /* Changed to absolute to overlay just the form-area */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95); /* Semi-transparent white overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10; /* Above form/ticket but below main container */
+            border-radius: 16px; /* Match form-area border-radius */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+        }
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s 0s;
+        }
+        .spinner {
+            border: 6px solid #e2e8f0; /* Light border */
+            border-top: 6px solid #2563eb; /* Blue spinner color */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 0.9s linear infinite;
+        }
+        .loading-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Animation for ticket fading in */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Print button style */
+        .print-btn {
+            background: #10b981; /* Green color */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 25px;
+            display: block; /* Make it a block element */
+            width: fit-content; /* Fit content width */
+            margin-left: auto; /* Center it */
+            margin-right: auto; /* Center it */
+        }
+        .print-btn:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+        }
+
+        /* Print specific styles */
+        @media print {
+            body * {
+                visibility: hidden; /* Hide everything by default */
+            }
+            .ticket-design-content, .ticket-design-content * {
+                visibility: visible; /* Show only ticket-design-content and its children */
+            }
+            .ticket-design-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0; /* Remove padding for print */
+                box-shadow: none; /* Remove shadow for print */
+                border: none; /* Remove border for print */
+                margin: 0; /* Remove margin for print */
+                background: none; /* Remove background for print */
+            }
+            .watermark {
+                opacity: 0.05; /* More subtle watermark in print */
+            }
+            .print-btn { /* Hide print button in print view */
+                display: none;
+            }
+            /* Ensure the ticket content takes up full width for printing */
+            .ticket-display {
+                width: 100%;
+                max-width: none;
+                background: none;
+                box-shadow: none;
+                border: none;
+                margin: 0;
+                padding: 0;
+                display: block; /* Ensure it's a block for print layout */
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                padding: 20px;
+            }
+            .logo {
+                font-size: 24px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+            .content {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            .form-area {
+                padding: 25px;
+            }
+            .form-header h2 {
+                font-size: 1.4rem;
+            }
+            label {
+                font-size: 0.9rem;
+            }
+            input[type="text"] {
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+            .search-btn {
+                padding: 14px;
+                font-size: 1rem;
+            }
+            .features h3 {
+                font-size: 1rem;
+            }
+            .feature-list li {
+                font-size: 0.9rem;
+            }
+            .ticket-display {
+                padding: 25px;
+                margin-top: 30px;
+            }
+            .ticket-main-header h3 {
+                font-size: 1.4rem;
+            }
+            .ticket-main-header p {
+                font-size: 0.9rem;
+            }
+            .ticket-subheader {
+                font-size: 1.1rem;
+            }
+            .ticket-info {
+                gap: 10px 15px;
+            }
+            .info-label, .info-value {
+                font-size: 0.9rem;
+            }
+            .serial-number-section h4 {
+                font-size: 1.5rem;
+            }
+            .ticket-note {
+                font-size: 0.85rem;
+            }
+            .footer {
+                padding: 20px;
+                font-size: 0.85rem;
+            }
+            .contact-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-mosque"></i> <span>আদ-দাওয়াহ ইসলামী পাঠাগার</span>
+            </div>
+            <h1>কনফারেন্স টিকিট জেনারেটর</h1>
+            <p class="subtitle">আপনার ইসলামিক কনফারেন্সের প্রবেশ টিকিট এখানে অনুসন্ধান করুন।</p>
+        </div>
+
+        <div class="content">
+            <div class="form-area">
+                <div class="form-header">
+                    <i class="fas fa-search"></i>
+                    <h2>আপনার টিকিট খুঁজুন</h2>
+                </div>
+
+                <div class="form-group">
+                    <label for="searchUserId">ইউজার আইডি:</label>
+                    <input type="text" id="searchUserId" placeholder="আপনার ইউজার আইডি লিখুন" required>
+                </div>
+
+                <button id="searchTicketBtn" class="search-btn">
+                    <i class="fas fa-ticket-alt"></i>
+                    খুঁজুন
+                </button>
+
+               
+
+                <div id="loadingOverlay" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <p class="loading-text" id="loadingMessage">অনুসন্ধান করা হচ্ছে...</p>
+                </div>
+            </div>
+
+            <div id="ticketDisplayArea" class="ticket-display hidden">
+                <div class="ticket-design-content">
+                    <div class="watermark">আদ-দাওয়াহ</div> <div class="ticket-main-header">
+                        <h3>আপনার প্রবেশ টিকিট</h3>
+                        <p>আদ-দাওয়াহ ইসলামী পাঠাগার, কাপাসিয়া</p>
+                    </div>
+
+                    <div class="ticket-info">
+                        </div>
+
+                    <div class="serial-number-section">
+                        <p>আপনার অনন্য সিরিয়াল নম্বর</p>
+                        <h4 id="ticketSerialNumber"></h4> </div>
+
+                    <div class="ticket-note">
+                        <strong>গুরুত্বপূর্ণ:</strong> কনফারেন্সের দিন অবশ্যই এই টিকিটের একটি স্ক্রিনশট বা প্রিন্ট কপি আপনার মোবাইল ডিভাইসে নিয়ে আসতে হবে।
+                    </div>
+
+                    <button id="printTicketBtn" class="print-btn">
+                        <i class="fas fa-print"></i> টিকিট প্রিন্ট করুন
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="messageArea" class="message hidden"></div>
+
+        <div class="footer">
+            <p>&copy; 2024 আদ-দাওয়াহ ইসলামী পাঠাগার. সর্বস্বত্ব সংরক্ষিত।</p>
+            <p>সহায়তা প্রয়োজন? আমাদের সহায়তা টিমের সাথে যোগাযোগ করুন:</p>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>01843949530</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>info@addaawah.org (উদাহরণস্বরূপ)</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>কাপাসিয়া, গাজীপুর, বাংলাদেশ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchUserIdInput = document.getElementById('searchUserId');
+        const searchTicketBtn = document.getElementById('searchTicketBtn');
+        const ticketDisplayArea = document.getElementById('ticketDisplayArea');
+        const messageArea = document.getElementById('messageArea');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const ticketSerialNumberDisplay = document.getElementById('ticketSerialNumber');
+        const printTicketBtn = document.getElementById('printTicketBtn');
+
+        // *** গুরুত্বপূর্ণ: এখানে আপনার গুগল অ্যাপস স্ক্রিপ্ট ওয়েব অ্যাপ URL টি দিন ***
+        const googleAppsScriptURL = 'https://script.google.com/macros/s/AKfycbzPU0GbB1ft1SBPaw0UXFOoMremvfJc19txjSQEFcGbR9EGjb5nD2sYhacocoqPFq_SVQ/exec';
+
+        // Function to display messages in the messageArea div
+        function displayMessage(messageHtml, type = 'info') {
+            messageArea.innerHTML = messageHtml;
+            messageArea.classList.remove('hidden', 'info', 'error');
+            messageArea.classList.add(type);
+            messageArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Function to show/hide loading overlay with custom text
+        function showLoading(message) {
+            loadingMessage.textContent = message;
+            loadingOverlay.classList.add('show');
+            // Hide other dynamic areas
+            ticketDisplayArea.classList.add('hidden');
+            messageArea.classList.add('hidden');
+            searchTicketBtn.disabled = true; // Disable the button when loading
+            searchUserIdInput.disabled = true; // Disable input too
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('show');
+            searchTicketBtn.disabled = false; // Enable the button
+            searchUserIdInput.disabled = false; // Enable input
+        }
+
+        // Print function
+        printTicketBtn.addEventListener('click', () => {
+            const printContent = document.querySelector('#ticketDisplayArea .ticket-design-content').innerHTML; // Get content of ticket design area
+            const printWindow = window.open('', '_blank');
+            // Construct full HTML for printing, including necessary styles
+            printWindow.document.write('<html><head><title>টিকিট প্রিন্ট</title>');
+            // Copy relevant styles for printing. You might need to refine these for exact match.
+            printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">');
+            printWindow.document.write('<style>');
+            printWindow.document.write(`
+                body { font-family: 'Poppins', 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+                /* Styles for the ticket-design-content specifically for print */
+                .ticket-design-content {
+                    width: 100%;
+                    max-width: 600px; /* Adjust as needed for print size */
+                    margin: 20px auto;
+                    background: white;
+                    border-radius: 14px;
+                    padding: 25px;
+                    box-shadow: none; /* No shadow on print */
+                    border: 1px solid #e2e8f0; /* Light border for definition */
+                    position: relative;
+                    overflow: hidden;
+                }
+                .watermark { position: absolute; bottom: 20px; right: 20px; opacity: 0.1; font-size: 4rem; font-weight: 800; color: #1d4ed8; transform: rotate(-25deg); }
+                .ticket-main-header { text-align: center; margin-bottom: 20px; }
+                .ticket-main-header h3 { font-size: 1.5rem; color: #1d4ed8; margin-bottom: 5px; }
+                .ticket-main-header p { font-size: 0.9rem; color: #64748b; }
+                .ticket-info { display: grid; grid-template-columns: auto 1fr; gap: 10px 15px; margin-bottom: 20px; }
+                .info-label { font-weight: 600; color: #475569; }
+                .info-value { color: #1e293b; font-weight: 500; text-align: right; word-break: break-all; }
+                .user-id-value { color: #6b46c1; font-weight: 600; }
+                .serial-value { color: #1d4ed8; font-weight: 700; font-size: 1.2rem; }
+                .serial-number-section { text-align: center; margin-top: 15px; padding: 10px; background: rgba(37, 99, 235, 0.05); border-radius: 8px; }
+                .serial-number-section p { font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
+                .serial-number-section h4 { font-size: 1.6rem; color: #1d4ed8; letter-spacing: 1px; }
+                .ticket-note { background: #fffbeb; border-radius: 8px; padding: 10px; margin-top: 15px; border-left: 3px solid #f59e0b; font-size: 0.85rem; color: #b45309; }
+                .ticket-note strong { color: #b45309; }
+            `);
+            printWindow.document.write('</style></head><body>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        });
+
+
+        searchTicketBtn.addEventListener('click', async () => {
+            const userId = searchUserIdInput.value.trim();
+            if (!userId) {
+                displayMessage('দয়া করে ইউজার আইডি দিন।', 'error');
+                ticketDisplayArea.classList.add('hidden');
+                return;
+            }
+
+            showLoading('অনুসন্ধান করা হচ্ছে...');
+
+            try {
+                console.log(`Sending request for User ID: ${userId}`); // Log the User ID
+                const response = await fetch(`${googleAppsScriptURL}?userId=${encodeURIComponent(userId)}`);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch error response text:', errorText);
+                    throw new Error(`HTTP error! Status: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log("Received raw result from Apps Script:", result); // See the full response
+
+                if (result.status === 'success' && result.data) {
+                    const userData = result.data;
+                    console.log("Parsed userData:", userData); // See parsed user data
+                    console.log("userData.Status type:", typeof userData.Status, "value:", userData.Status);
+                    console.log("userData.Serial type:", typeof userData.Serial, "value:", userData.Serial);
+
+
+                    // IMPORTANT: Use String() to ensure proper comparison, as Status might come as a number from Google Sheets
+                    if (String(userData.Status) === '2' && userData.Serial) {
+                        console.log("Condition met: Status is '2' and Serial exists.");
+                        // Show "Ticket is being generated..." loading with serial
+                        showLoading(`সিরিয়াল নম্বর: ${userData.Serial} - টিকিট তৈরি হচ্ছে...`);
+
+                        // Wait for 2 seconds to simulate generation
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+
+                        // Display the final ticket.
+                        hideLoading(); // Hide the ticket generation loading overlay
+                        ticketDisplayArea.classList.remove('hidden'); // Show final ticket area
+
+                        // Update static content in ticket-design-content with dynamic data
+                        document.querySelector('#ticketDisplayArea .ticket-main-header h3').textContent = 'আপনার প্রবেশ টিকিট';
+                        document.querySelector('#ticketDisplayArea .ticket-main-header p').textContent = 'আদ-দাওয়াহ ইসলামী পাঠাগার, কাপাসিয়া';
+
+                        const ticketInfoDiv = document.querySelector('#ticketDisplayArea .ticket-info');
+                        ticketInfoDiv.innerHTML = `
+                            <div class="info-label">ইউজার আইডি:</div>
+                            <div class="info-value user-id-value">${userData.UserID || 'N/A'}</div>
+
+                            <div class="info-label">নাম:</div>
+                            <div class="info-value">${userData.Name || 'N/A'}</div>
+
+                            <div class="info-label">বয়স:</div>
+                            <div class="info-value">${userData.Age || 'N/A'}</div>
+
+                            <div class="info-label">লিঙ্গ:</div>
+                            <div class="info-value">${userData.Gender || 'N/A'}</div>
+
+                            <div class="info-label">ফোন নম্বর:</div>
+                            <div class="info-value">${userData.PhoneNumber || 'N/A'}</div>
+
+                            <div class="info-label">ট্রান্সেকশন আইডি:</div>
+                            <div class="info-value">${userData.TrxID || 'N/A'}</div>
+
+                            <div class="info-label">ঠিকানা:</div>
+                            <div class="info-value">${[userData.Village, userData.Thana, userData.District, userData.Division].filter(Boolean).join(', ') || 'N/A'}</div>
+                        `;
+                        ticketSerialNumberDisplay.textContent = userData.Serial; // Set the dynamic serial number
+
+                    } else if (String(userData.Status) === '1') { // Use String() for safety
+                        console.log("Condition met: Status is '1'.");
+                        hideLoading();
+                        displayMessage(
+                            `
+                            <div class="text-left">
+                                <p><strong>ইউজার আইডি:</strong> <span class="font-bold text-purple-700">${userData.UserID || 'N/A'}</span></p>
+                                <p><strong>নাম:</strong> ${userData.Name || 'N/A'}</p>
+                                <p><strong>বয়স:</strong> ${userData.Age || 'N/A'}</p>
+                                <p><strong>লিঙ্গ:</strong> ${userData.Gender || 'N/A'}</p>
+                                <p><strong>ফোন নম্বর:</strong> ${userData.PhoneNumber || 'N/A'}</p>
+                                <p><strong>ঠিকানা:</strong> ${[userData.Village, userData.Thana, userData.District, userData.Division].filter(Boolean).join(', ') || 'N/A'}</p>
+                            </div>
+                            <br>
+                            <p>আপনার ডেটা আমরা রিসিভ করেছি। আপনার স্ট্যাটাস আপডেট করে দেওয়া হবে। দয়া করে সিরিয়াল নম্বর দেখার জন্য পরবর্তী ২৪ ঘণ্টা অপেক্ষা করুন।</p>
+                            `, 'info'
+                        );
+                        ticketDisplayArea.classList.add('hidden');
+                    } else { // This is the block that's likely being hit incorrectly
+                        console.log("Condition NOT met: Status or Serial is not as expected. Actual Status:", userData.Status, "Actual Serial:", userData.Serial);
+                        hideLoading();
+                        displayMessage(
+                            `
+                            <div class="text-left">
+                                <p><strong>ইউজার আইডি:</strong> <span class="font-bold text-purple-700">${userData.UserID || 'N/A'}</span></p>
+                                <p><strong>নাম:</strong> ${userData.Name || 'N/A'}</p>
+                                <p><strong>বয়স:</strong> ${userData.Age || 'N/A'}</p>
+                                <p><strong>লিঙ্গ:</strong> ${userData.Gender || 'N/A'}</p>
+                                <p><strong>ফোন নম্বর:</strong> ${userData.PhoneNumber || 'N/A'}</p>
+                                <p><strong>ঠিকানা:</strong> ${[userData.Village, userData.Thana, userData.District, userData.Division].filter(Boolean).join(', ') || 'N/A'}</p>
+                            </div>
+                            <br>
+                            <p>আপনার প্রবেশ টিকিট এখনও প্রস্তুত করা হয় নি </p>
+                            <p>দয়া করে ২৪ ঘণ্টা অপেক্ষা করুন অথবা আমাদের সাথে যোগাযোগ করুন।</p>
+                            `, 'error'
+                        );
+                        ticketDisplayArea.classList.add('hidden');
+                    }
+                } else {
+                    hideLoading();
+                    displayMessage(
+                        `
+                        <p>আপনার ইউজার নাম দিয়ে খুঁজে পাওয়া যায়নি।</p>
+                        <p>দয়া করে আমাদের পেজে SMS দিয়ে বা কল এ আমাদের সাথে যোগাযোগ করুন।</p>
+                        <p>ফোন নাম্বার: <span style="font-weight: bold; color: #2563eb;">01843949530</span></p>
+                        `, 'error'
+                    );
+                    ticketDisplayArea.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('টিকিট আনতে সমস্যা হয়েছে:', error);
+                hideLoading();
+                displayMessage(
+                    `টিকিট আনতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন। ত্রুটি: ${error.message}`, 'error'
+                );
+                ticketDisplayArea.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
