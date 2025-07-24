@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রক্তদাতা অনুসন্ধান</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons (loading spinner এবং আইকনের জন্য) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* নতুন: হালকা গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড যোগ করা হয়েছে */
+            background-image: linear-gradient(to bottom right, #eef2ff, #dbeafe); /* Light blue to very light blue gradient */
+            min-height: 100vh; /* পুরো ভিউপোর্ট উচ্চতা নিশ্চিত করে */
+            display: flex;
+            flex-direction: column; /* Allows content and footer to stack vertically */
+            padding: 0; /* Remove body padding, let content containers handle it */
+            overflow-x: hidden; /* অনুভূমিক স্ক্রলবার প্রতিরোধ করে */
+            position: relative; /* ফুটার এবং হেডার এর জন্য প্রসঙ্গ স্থাপন করে */
+        }
+        .form-container {
+            margin: 0 auto;
+            background-color: white;
+            padding: 3.5rem 2.5rem; /* উল্লম্ব প্যাডিং বাড়ানো হয়েছে */
+            border-radius: 1.5rem; /* 24px - আরও গোলাকার */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); /* আরও শক্তিশালী শ্যাডো */
+            width: 100%; /* ছোট স্ক্রিনে পুরো প্রস্থ নেবে */
+            max-width: 600px; /* সর্বোচ্চ প্রস্থ */
+            opacity: 0; /* প্রাথমিকভাবে অদৃশ্য */
+            transform: translateY(20px); /* প্রাথমিকভাবে সামান্য নিচে */
+            animation: fadeInScaleUp 0.8s ease-out forwards; /* নতুন অ্যানিমেশন */
+            flex-shrink: 0; /* Prevents form from shrinking if content is too large */
+        }
+        /* নতুন ফর্ম এন্ট্রি অ্যানিমেশন */
+        @keyframes fadeInScaleUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151; /* Gray 700 */
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.9rem; /* প্যাডিং বাড়ানো হয়েছে */
+            border: 1px solid #d1d5db; /* Gray 300 */
+            border-radius: 0.625rem; /* 10px - আরও গোলাকার */
+            font-size: 1rem;
+            color: #1f2937; /* Gray 800 */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo 500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35); /* শক্তিশালী ফোকাস শ্যাডো */
+        }
+        .submit-button {
+            width: 100%;
+            padding: 1rem 1.5rem; /* প্যাডিং বাড়ানো হয়েছে */
+            background-image: linear-gradient(to right, #4f46e5, #6366f1); /* ইন্ডিগো গ্রেডিয়েন্ট */
+            color: white;
+            font-weight: 700;
+            border-radius: 0.625rem; /* 10px - আরও গোলাকার */
+            border: none;
+            cursor: pointer;
+            transition: background-image 0.3s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3); /* ইন্ডিগো শ্যাডো */
+            position: relative;
+            overflow: hidden; /* হোভার ইফেক্টের জন্য */
+        }
+        .submit-button:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #6366f1, #4f46e5); /* বিপরীত গ্রেডিয়েন্ট */
+            transform: translateY(-3px); /* সামান্য উপরে উঠে আসবে */
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.45); /* Hover এ শ্যাডো বাড়ানো হয়েছে */
+        }
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-image: none;
+            background-color: #9ca3af; /* Gray 400 */
+            box-shadow: none;
+        }
+
+        /* Ripple effect for button */
+        .submit-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(1) translate(-50%, -50%);
+            transition: transform 0.5s, opacity 0.5s;
+        }
+
+        .submit-button:not(:disabled):active::after {
+            transform: scale(20) translate(-50%, -50%);
+            opacity: 1;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .message-box {
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0.75rem; /* আরও গোলাকার */
+            font-weight: 500;
+            text-align: center;
+            opacity: 0; /* প্রাথমিকভাবে অদৃশ্য */
+            transform: translateY(10px);
+            animation: fadeIn 0.4s ease-out forwards; /* মেসেজের জন্য অ্যানিমেশন */
+        }
+        .success-message {
+            background-color: #d1fae5; /* Green 100 */
+            color: #065f46; /* Green 800 */
+        }
+        .error-message {
+            background-color: #fee2e2; /* Red 100 */
+            color: #991b1b; /* Red 800 */
+        }
+        /* Search Result Card Styles */
+        .donor-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 1rem; /* 16px - আরও গোলাকার */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* উন্নত শ্যাডো */
+            border: 1px solid #e0e7ff; /* হালকা নীল বর্ডার */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            opacity: 0; /* প্রাথমিকভাবে অদৃশ্য */
+            transform: translateY(10px); /* প্রাথমিকভাবে সামান্য নিচে */
+        }
+        .donor-card:hover {
+            transform: translateY(-5px); /* Hover এ সামান্য উপরে উঠে আসবে */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Hover এ শ্যাডো বাড়ানো হয়েছে */
+        }
+        .donor-card h3 {
+            color: #374151; /* Gray 700 */
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem; /* একটু বড় ফন্ট */
+        }
+        .donor-card p {
+            color: #4b5563; /* Gray 600 */
+            line-height: 1.6; /* লাইন উচ্চতা বাড়ানো হয়েছে */
+        }
+        .donor-card a {
+            display: inline-flex; /* Icon and text in one line */
+            align-items: center;
+            color: #4f46e5; /* Indigo for links */
+            transition: color 0.2s ease-in-out;
+        }
+        .donor-card a:hover {
+            color: #6366f1;
+            text-decoration: underline;
+        }
+        .donor-card a i {
+            margin-right: 0.5rem; /* Space between icon and text */
+            font-size: 1.1em;
+        }
+
+        /* Modal specific styles for pop-ups */
+        .modal-overlay-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001; /* Above other content */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal-overlay-popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content-popup {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-overlay-popup.active .modal-content-popup {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .modal-content-popup .close-button {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #9ca3af; /* Gray 400 */
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .modal-content-popup .close-button:hover {
+            color: #4b5563; /* Gray 600 */
+        }
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .modal-icon.info {
+            color: #2563eb; /* Blue */
+        }
+        .modal-icon.error {
+            color: #dc2626; /* Red */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .form-container {
+                padding: 2rem 1.25rem; /* ছোট স্ক্রিনে প্যাডিং কমানো */
+                border-radius: 1rem;
+                margin-top: 1.5rem; /* Adjust margin for mobile to provide space from header */
+                margin-bottom: 1.5rem; /* Adjust margin for mobile to provide space to footer */
+            }
+            .text-4xl {
+                font-size: 2.25rem; /* ছোট স্ক্রিনে টাইটেলের ফন্ট সাইজ কমানো */
+            }
+            .text-lg {
+                font-size: 0.95rem; /* ছোট স্ক্রিনে বর্ণনার ফন্ট সাইজ কমানো */
+            }
+        }
+        
+        /* Header Styles */
+        .header {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e7ff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0; /* Prevents header from shrinking */
+            z-index: 10; /* Ensure header stays on top */
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-link {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4f46e5;
+            transition: color 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #e0e7ff; /* Light indigo background */
+        }
+
+        .header-link:hover {
+            color: #6366f1;
+            background-color: #c7d2fe;
+        }
+
+        /* Footer Styles */
+        .footer {
+            width: 100%;
+            padding: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+            border-top: 1px solid #e0e7ff;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #4b5563; /* Gray 600 */
+            border-radius: 0; /* No rounded corners for footer to fit full width */
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05); /* Top shadow */
+            margin-top: auto; /* Pushes footer to the bottom */
+            flex-shrink: 0; /* Prevents footer from shrinking */
+            z-index: 10; /* Ensure footer stays on top */
+        }
+
+        .footer p {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer a {
+            color: #4f46e5; /* Indigo */
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .footer a:hover {
+            color: #6366f1;
+            text-decoration: underline;
+        }
+
+        /* Main content wrapper to push footer down */
+        main {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem; /* Padding for the main content area */
+            width: 100%; /* Ensure main takes full width */
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                flex-direction: column;
+                padding: 1rem;
+                text-align: center;
+            }
+            .header-title {
+                margin-bottom: 0.75rem;
+                font-size: 1.25rem;
+            }
+            .header-link {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+            .footer {
+                padding: 1rem;
+                font-size: 0.8rem;
+            }
+            main {
+                padding: 1rem; /* Adjust main padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-title">
+            <i class="fas fa-hand-holding-medical text-red-500 mr-2"></i>আদ-দাওয়াহ ব্লাড ব্যাংক
+        </div>
+        <a href="https://sites.google.com/view/addawha/blood-home" target="_blank" rel="noopener noreferrer" class="header-link">
+            <i class="fas fa-home mr-2"></i>হোমপেজ
+        </a>
+    </header>
+
+    <!-- রক্তদাতা অনুসন্ধান ফর্ম -->
+    <main>
+        <div class="form-container">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-center text-indigo-800 mb-6">রক্তদাতা অনুসন্ধান</h1>
+            <p class="text-center text-lg text-gray-700 mb-10">আপনার প্রয়োজনীয় রক্তদাতার তথ্য খুঁজে বের করুন।</p>
+
+            <form id="donorSearchForm" class="space-y-6"> <!-- Gap between fields -->
+                <div>
+                    <label for="searchBloodGroup" class="form-label">রক্তের গ্রুপ:</label>
+                    <select id="searchBloodGroup" name="BloodGroup" class="form-select" required>
+                        <option value="All">সকল গ্রুপ</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="searchDivision" class="form-label">বিভাগ (ঐচ্ছিক):</label>
+                    <select id="searchDivision" name="Division" class="form-select">
+                        <option value="All">সকল বিভাগ</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="searchDistrict" class="form-label">জেলা (ঐচ্ছিক):</label>
+                    <select id="searchDistrict" name="District" class="form-select" disabled>
+                        <option value="All">সকল জেলা</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="searchThana" class="form-label">থানা/উপজেলা (ঐচ্ছিক):</label>
+                    <select id="searchThana" name="Thana" class="form-select" disabled>
+                        <option value="All">সকল থানা/উপজেলা</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-button" id="searchSubmitButton">অনুসন্ধান করুন</button>
+            </form>
+
+            <div id="searchResults" class="mt-8 space-y-4">
+                <p class="text-center text-gray-600">অনুসন্ধান ফলাফল এখানে প্রদর্শিত হবে।</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- No Donor Found Modal -->
+    <div id="noDonorModal" class="modal-overlay-popup hidden">
+        <div class="modal-content-popup relative">
+            <button class="close-button" onclick="closeModalPopup('noDonorModal')">&times;</button>
+            <i class="fas fa-info-circle modal-icon info"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">কোনো রক্তদাতা পাওয়া যায়নি!</h3>
+            <p class="text-gray-700">আপনার অনুসন্ধানের শর্ত পরিবর্তন করে আবার চেষ্টা করুন।</p>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal-overlay-popup hidden">
+        <div class="modal-content-popup relative">
+            <button class="close-button" onclick="closeModalPopup('errorModal')">&times;</button>
+            <i class="fas fa-exclamation-triangle modal-icon error"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">অনুসন্ধানে সমস্যা হয়েছে!</h3>
+            <p class="text-gray-700">ডোনার অনুসন্ধানে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</p>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <p>&copy; <span id="current-year"></span> আদ-দাওয়াহ। সকল অধিকার সংরক্ষিত।</p>
+        <p>জীবন বাঁচানো একটি মহৎ কাজ। <a href="https://sites.google.com/view/addawha/contact" target="_blank" rel="noopener noreferrer">আমাদের সাথে যোগাযোগ করুন</a></p>
+    </footer>
+
+    <script>
+        // Get the current year for the footer copyright
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // আপনার Google Apps Script Web App URL এখানে পেস্ট করা হবে (অনুসন্ধানের জন্য)
+        // এটি আপনার Apps Script-এর doGet ফাংশন ধারণকারী Web App-এর URL।
+        // নিশ্চিত করুন এটি আপনার নতুন Apps Script (যেমন SearchDonors.gs) Deploy করার পর প্রাপ্ত URL।
+        const GOOGLE_APP_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxoOhj4LFZHxlTkY5Dj8BCXdTq3t9UGwTlh8BCZMnamONR57LpWAx_lEAynDpY6j0Ut/exec'; // <--- এখানে আপনার সার্চ Apps Script-এর URL বসান
+
+
+        // বাংলাদেশ বিভাগের ডেটা (প্রদর্শনের জন্য হার্ডকোড করা হয়েছে)
+        const bdLocations = {
+            "ঢাকা": {
+                "ঢাকা": ["ধামরাই", "দোহার", "কেরানীগঞ্জ", "নবাবগঞ্জ", "সাভার", "তেজগাঁও"],
+                "গাজীপুর": ["কালিয়াকৈর", "কাপাসিয়া", "কালীগঞ্জ", "শ্রীপুর", "গাজীপুর সদর"],
+                "ফরিদপুর": ["বোয়ালমারী", "ভাঙ্গা", "নাগরকান্দা", "সদরপুর", "সালথা"],
+                "টাঙ্গাইল": ["বাসাইল", "ভুঞাপুর", "দেলদুয়ার", "ঘাটাইল", "গোপালপুর"],
+                "মানিকগঞ্জ": ["দৌলতপুর", "ঘিওর", "হরিরামপুর", "মানিকগঞ্জ সদর", "সাটুরিয়া"],
+                "মুন্সিগঞ্জ": ["গজারিয়া", "লৌহজং", "মুন্সিগঞ্জ সদর", "শ্রীনগর", "সিরাজদিখান"],
+                "নারায়ণগঞ্জ": ["আড়াইহাজার", "বন্দর", "নারায়ণগঞ্জ সদর", "রূপগঞ্জ", "সোনারগাঁও"],
+                "নরসিংদী": ["বেলাবো", "মনোহরদী", "নরসিংদী সদর", "পলাশ", "রায়পুরা"],
+                "রাজবাড়ী": ["বালিয়াকান্দি", "গোয়ালন্দ", "পাংশা", "রাজবাড়ী সদর"],
+                "শরীয়তপুর": ["ডামুড্যা", "গোসাইরহাট", "জাজিরা", "নড়িয়া", "ভেদরগঞ্জ"],
+                "কিশোরগঞ্জ": ["অষ্টগ্রাম", "বাজিতপুর", "ভৈরব", "কিশোরগঞ্জ সদর", "কুলিয়ারচর"]
+            },
+            "চট্টগ্রাম": {
+                "চট্টগ্রাম": ["আনোয়ারা", "বোয়ালখালী", "চন্দনাইশ", "ফটিকছড়ি", "হাটহাজারী", "লোহাগাড়া", "মীরসরাই", "পটিয়া", "রাঙ্গুনিয়া", "রাউজান", "সন্দ্বীপ", "সীতাকুণ্ড"],
+                "কক্সবাজার": ["চকরিয়া", "কক্সবাজার সদর", "কুতুবদিয়া", "মহেশখালী", "পেকুয়া", "রামু", "টেকনাফ", "উখিয়া"],
+                "কুমিল্লা": ["বরুড়া", "ব্রাহ্মণপাড়া", "বুড়িচং", "চান্দিনা", "দাউদকান্দি", "দেবিদ্বার", "হোমনা", "লাকসাম", "লালমাই", "মেঘনা", "মুরাদনগর", "নাঙ্গলকোট", "সদর দক্ষিণ", "তিতাস"],
+                "ব্রাহ্মণবাড়িয়া": ["আখাউড়া", "বাঞ্ছারামপুর", "ব্রাহ্মণবাড়িয়া সদর", "কসবা", "নাসিরনগর", "সরাইল", "নবীনগর"],
+                "চাঁদপুর": ["হাজীগঞ্জ", "চাঁদপুর সদর", "ফরিদগঞ্জ", "হাইমচর", "কচুয়া", "মতলব উত্তর", "মতলব দক্ষিণ", "শাহরাস্তি"],
+                "লক্ষ্মীপুর": ["কমলনগর", "রামগতি", "লক্ষ্মীপুর সদর", "রায়পুর", "রামগঞ্জ"],
+                "নোয়াখালী": ["বেগমগঞ্জ", "চাটখিল", "কোম্পানীগঞ্জ", "হাতিয়া", "সেনবাগ", "সুবর্ণচর", "Noakhali Sadar"],
+                "ফেনী": ["ছাগলনাইয়া", "দাগনভূঞা", "ফুলগাজী", "পরশুরাম", "ফেনী সদর", "সোনাগাজী"],
+                "খাগড়াছড়ি": ["দিঘীনালা", "মহালছড়ি", " Manikchhari", "মাটিরাঙ্গা", "পানছড়ি", "Ramgarh", "খাগড়াছড়ি সদর"],
+                "বান্দরবান": ["Alikadam", "বান্দরবান সদর", "Lama", "Naikhongchhari", "Ruma", "Thanchi"],
+                "রাঙ্গামাটি": ["Baghaichhari", "Barkal", "Kawkhali", "Langadu", "Naniarchar", "Rajasthali", "রাঙ্গামাটি সদর"]
+            },
+            "রাজশাহী": {
+                "রাজশাহী": ["বাঘা", "বাগমারা", "গোদাগাড়ী", "মোহনপুর", "পবা", "পুঠিয়া", "তানোর", "চারঘাট"],
+                "বগুড়া": ["আদমদিঘী", "বগুড়া সদর", "ধুনট", "গাবতলী", "কাহালু", "নন্দীগ্রাম", "সারিয়াকান্দি", "শেরপুর"],
+                "পাবনা": ["আটঘরিয়া", "বেড়া", "ভাঙ্গুড়া", "Fari", "ঈশ্বরদী", "Chhatak", "পাবনা সদর", "Santhia"],
+                "সিরাজগঞ্জ": ["বেলকুচি", "Chauhali", "Kazipur", "Kamarkhanda", "Raiganj", "Shahzadpur", "সিরাজগঞ্জ সদর", "Tarash"],
+                "নওগাঁ": ["আত্রাই", "Badalgachhi", "Dhamoirhat", "নওগাঁ সদর", "Patnitala", "Porsha"],
+                "নাটোর": ["বাগাতিপাড়া", "Baraigram", "গুরুদাসপুর", "নাটোর সদর", "Lalpur"],
+                "চাঁপাইনবাবগঞ্জ": ["Gomastapur", "Nachol", "Bholahat", "চাঁপাইনবাবগঞ্জ সদর"],
+                "জয়পুরহাট": ["Akkelpur", "Panchbibi", "জয়পুরহাট সদর"],
+            },
+            "সিলেট": {
+                "সিলেট": ["বালাগঞ্জ", "Biyanibazar", "গোলাপগঞ্জ", "Gowainghat", "Kanaighat", "Fenchuganj", "সিলেট সদর", "Jaintapur", "Dakshin Surma", "Osmaninagar"],
+                "হবিগঞ্জ": ["Azmiriganj", "Chunarughat", "হবিগঞ্জ সদর", "Lakhai", "Nabiganj", "Bahubal", "Madhabpur", "Shayestaganj"],
+                "মৌলভীবাজার": ["Barlekha", "Komolganj", "Kulaura", "Moulvibazar Sadar", "Rajnagar", "Sreemongal", "Juri"],
+                "সুনামগঞ্জ": ["ছাতক", "Dirai", "Dharmapasha", "Dwarabazar", "Jagannathpur", "Jamalganj", "সুনামগঞ্জ সদর", "Taharpur", "Bishwamvarpur", "Shalla"]
+            },
+            "খুলনা": {
+                "খুলনা": ["Batiaghata", "Dakop", "Dighalia", "Koyra", "খুলনা সদর", "Paikgacha", "Phultala", "Rupsa"],
+                "বাগেরহাট": ["বাগেরহাট সদর", "Chitalmari", "Fakirhat", "Kachua", "Mollahat", "Mongla", "Sarankhola", "Rampal"],
+                "সাতক্ষীরা": ["Assasuni", "Debhata", "Kaliganj", "Shyamnagar", "সাতক্ষীরা সদর", "Tala"],
+                "যশোর": ["Abhaynagar", "Bagherpara", "Chaugachha", "Jhikargacha", "Keshabpur", "যশোর সদর", "Manirampur", "Sharsha"],
+                "কুষ্টিয়া": ["Bheramara", "Daulatpur", "Kumarkhali", "কুষ্টিয়া সদর", "Mirpur", "Khoksa"],
+                "চুয়াডাঙ্গা": ["Alamgir", "Damurhuda", "চুয়াডাঙ্গা সদর", "Jibannagar"],
+                "মেহেরপুর": ["Gangni", "Mujibnagar", "মেহেরপুর সদর"],
+                "ঝিনাইদহ": ["Harinkundu", "Kaliganj", "Kotchandpur", "Moheshpur", "Shailkupa", "ঝিনাইদহ সদর"],
+                "মাগুরা": ["Mohammadpur", "মাগুরা সদর", " শালিখা", "Sreepur"],
+                "নড়াইল": ["Kalia", "Lohagara", "নড়াইল সদর"]
+            },
+            "বরিশাল": {
+                "বরিশাল": ["Agailjhara", "Babuganj", "Bakerganj", "Banaripara", "Gournadi", "Hizla", "বরিশাল সদর", "Mehendiganj", "Muladi", "Uzirpur"],
+                "ভোলা": ["ভোলা সদর", "Burhanuddin", "Daulatkhan", "Lalmohan", "Monpura", "Tazumuddin", "Char Fasson"],
+                "ঝালকাঠি": ["Kathalia", "Nalchity", "Rajapur", "ঝালকাঠি সদর"],
+                "পটুয়াখালী": ["Bauphal", "Dumki", "Galachipa", "Dashmina", "Kolapara", "Mirzaganj", "পটুয়াখালী সদর"],
+                "পিরোজপুর": ["Bhandaria", "Kawkhali", "Mothbaria", "Nazirpur", "পিরোজপুর সদর", "Nesarabad (Swarupkati)"],
+                "বরগুনা": ["Amtali", "বরগুনা সদর", "Betagi", "Patharghata", "Bamna", "Taltali"]
+            },
+            "রংপুর": {
+                "রংপুর": ["Badarganj", "Gangachara", "Kaunia", "Pirgacha", "Pirganj", "রংপুর সদর", "Taraganj", "Mithapukur"],
+                "দিনাজপুর": ["Birganj", "Chirirbandar", "Phulbari", "Ghoraghat", "Hakimpur", "Kaharol", "Khanasam", "দিনাজপুর সদর", "Parbatipur"],
+                "কুড়িগ্রাম": ["Bhurungamari", "Chilmari", "Ulipur", "Nageshwari", "Rajarhat", "Rowmari", "Sadullapur", "কুড়িগ্রাম সদর"],
+                "গাইবান্ধা": ["গাইবান্ধা সদর", "Gobindaganj", "Palashbari", "Sadullapur", "Saghatta", "Sundarganj"],
+                "নীলফামারী": ["Dimla", "Domar", "Jaldhaka", "Kishoreganj", "নীলফামারী সদর", "Saidpur"],
+                "লালমনিরহাট": ["Aditmari", "Kaliganj", "লালমনিরহাট সদর", "Patgram", "Hatibandha"],
+                "পঞ্চগড়": ["Atwari", "Boda", "Debiganj", "পঞ্চগড় সদর", "Tetulia"],
+                "ঠাকুরগাঁও": ["Baliadangi", "Haripur", "Pirganj", "Ranishankail", "ঠাকুরগাঁও সদর"]
+            },
+            "ময়মনসিংহ": {
+                "ময়মনসিংহ": ["ভালুকা", "Gafargaon", "Gouripur", "Ishwarganj", "Muktagachha", "Fulbaria", "Trishal", "Nandail", "Phulpur", "Tarakanda", "Dhobaura", "Haluaghat"],
+                "জামালপুর": ["Bokshiganj", "Dewanganj", "Islam", "জামালপুর সদর", "Madarganj", "Melandah", "Sarishabari"],
+                "শেরপুর": ["Jhenaigati", "Nakla", "Nalitabari", "শেরপুর সদর", "Sreebardi"],
+                "নেত্রকোণা": ["Atpara", "Durgapur", "Kolmakanda", "Kendua", "Madan", "Mohanganj", "নেত্রকোণা সদর", "Purba Dhala"]
+            }
+        };
+
+        const donorSearchForm = document.getElementById('donorSearchForm');
+        const searchBloodGroupSelect = document.getElementById('searchBloodGroup');
+        const searchDivisionSelect = document.getElementById('searchDivision');
+        const searchDistrictSelect = document.getElementById('searchDistrict');
+        const searchThanaSelect = document.getElementById('searchThana');
+        const searchResultsDiv = document.getElementById('searchResults');
+
+        // Modal pop-up elements
+        const noDonorModal = document.getElementById('noDonorModal');
+        const errorModal = document.getElementById('errorModal');
+
+        // Function to open a modal pop-up
+        function openModalPopup(modalElement) {
+            modalElement.classList.remove('hidden');
+            setTimeout(() => modalElement.classList.add('active'), 10);
+        }
+
+        // Function to close a modal pop-up
+        function closeModalPopup(modalId) {
+            const modalElement = document.getElementById(modalId);
+            modalElement.classList.remove('active');
+            modalElement.addEventListener('transitionend', function handler() {
+                modalElement.classList.add('hidden');
+                modalElement.removeEventListener('transitionend', handler);
+            }, { once: true }); // Ensure listener is removed after one execution
+        }
+
+        // Close modals when clicking outside the content
+        document.querySelectorAll('.modal-overlay-popup').forEach(overlay => {
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    closeModalPopup(overlay.id);
+                }
+            });
+        });
+
+        // অনুসন্ধান বিভাগের ড্রপডাউন পপুলেট করুন
+        function populateSearchDivisions() {
+            // 'সকল বিভাগ' অপশনটি প্রথমে যোগ করুন
+            searchDivisionSelect.innerHTML = '<option value="All">সকল বিভাগ</option>';
+            for (const division in bdLocations) {
+                const option = document.createElement('option');
+                option.value = division;
+                option.textContent = division;
+                searchDivisionSelect.appendChild(option);
+            }
+            // নির্ভরশীল ড্রপডাউনগুলো রিসেট করুন এবং প্রাথমিকভাবে নিষ্ক্রিয় (disabled) করুন
+            populateSearchDistricts(); // এটি searchDistrictSelect এবং searchThanaSelect কেও রিসেট করবে
+        }
+
+        // নির্বাচিত অনুসন্ধান বিভাগ অনুযায়ী জেলা ড্রপডাউন পপুলেট করুন
+        function populateSearchDistricts() {
+            const selectedDivision = searchDivisionSelect.value;
+            searchDistrictSelect.innerHTML = '<option value="All">সকল জেলা</option>'; // জেলা তালিকা রিসেট করুন
+            searchThanaSelect.innerHTML = '<option value="All">সকল থানা/উপজেলা</option>'; // থানা তালিকা রিসেট করুন
+            searchDistrictSelect.disabled = true;
+            searchThanaSelect.disabled = true;
+
+            if (selectedDivision && selectedDivision !== 'All' && bdLocations[selectedDivision]) {
+                const districts = bdLocations[selectedDivision];
+                for (const district in districts) {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    searchDistrictSelect.appendChild(option);
+                }
+                searchDistrictSelect.disabled = false;
+            }
+        }
+
+        // নির্বাচিত অনুসন্ধান জেলা অনুযায়ী থানা ড্রপডাউন পপুলেট করুন
+        function populateSearchThanas() {
+            const selectedDivision = searchDivisionSelect.value;
+            const selectedDistrict = searchDistrictSelect.value;
+            searchThanaSelect.innerHTML = '<option value="All">সকল থানা/উপজেলা</option>'; // থানা তালিকা রিসেট করুন
+            searchThanaSelect.disabled = true;
+
+            if (selectedDivision && selectedDistrict && selectedDistrict !== 'All' && bdLocations[selectedDivision][selectedDistrict]) {
+                const thanas = bdLocations[selectedDivision][selectedDistrict];
+                thanas.forEach(thana => {
+                    const option = document.createElement('option');
+                    option.value = thana;
+                    option.textContent = thana;
+                    searchThanaSelect.appendChild(option);
+                });
+                thanaSelect.disabled = false;
+            }
+        }
+
+        // অনুসন্ধান ড্রপডাউনগুলির জন্য ইভেন্ট লিসেনার
+        searchDivisionSelect.addEventListener('change', populateSearchDistricts);
+        searchDistrictSelect.addEventListener('change', populateSearchThanas);
+
+        // পেজ লোড হওয়ার সাথে সাথে অনুসন্ধান ড্রপডাউনগুলি পপুলেট করুন
+        document.addEventListener('DOMContentLoaded', populateSearchDivisions);
+
+        // প্রধান অনুসন্ধান ফাংশন
+        donorSearchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // লোডিং স্পিনার দেখান
+            searchResultsDiv.innerHTML = `
+                <div class="text-center text-gray-500 animate-pulse flex flex-col items-center">
+                    <i class="fas fa-spinner fa-spin text-4xl mb-2"></i>
+                    <p class="text-xl">অনুসন্ধান করা হচ্ছে...</p>
+                </div>
+            `;
+
+            const bloodGroup = searchBloodGroupSelect.value;
+            const division = searchDivisionSelect.value;
+            const district = searchDistrictSelect.value;
+            const thana = searchThanaSelect.value;
+
+            let queryParams = new URLSearchParams();
+            queryParams.append('BloodGroup', bloodGroup);
+            if (division !== 'All') queryParams.append('Division', division);
+            if (district !== 'All') queryParams.append('District', district);
+            if (thana !== 'All') queryParams.append('Thana', thana);
+
+            // Google Apps Script Web App URL ব্যবহার করে GET রিকোয়েস্ট পাঠান
+            const searchUrl = `${GOOGLE_APP_SCRIPT_WEB_APP_URL}?${queryParams.toString()}`;
+
+            try {
+                // অনুসন্ধান ফলাফলের জন্য JSON প্রতিক্রিয়া আশা করা হচ্ছে
+                const response = await fetch(searchUrl);
+                const donors = await response.json();
+                
+                displaySearchResults(donors); // ফলাফল প্রদর্শন করুন
+
+            } catch (error) {
+                console.error('ডোনার অনুসন্ধানে ত্রুটি:', error);
+                // Show error modal instead of inline message
+                openModalPopup(errorModal);
+                searchResultsDiv.innerHTML = ''; // Clear previous results
+            }
+        });
+
+        // অনুসন্ধান ফলাফল প্রদর্শনের ফাংশন
+        function displaySearchResults(donors) {
+            searchResultsDiv.innerHTML = ''; // পূর্ববর্তী ফলাফল সাফ করুন
+
+            if (donors.length === 0) {
+                // Show "No donor found" modal instead of inline message
+                openModalPopup(noDonorModal);
+                return;
+            }
+
+            const resultList = document.createElement('div');
+            resultList.className = 'space-y-4'; // ফলাফল কার্ডের মধ্যে ব্যবধানের জন্য
+
+            donors.forEach((donor, index) => {
+                const donorCard = document.createElement('div');
+                // Format phone number: add '0' prefix if missing
+                let formattedPhoneNumber = donor.PhoneNumber1;
+                if (formattedPhoneNumber && formattedPhoneNumber.length > 0 && formattedPhoneNumber[0] !== '0') {
+                    formattedPhoneNumber = '0' + formattedPhoneNumber;
+                }
+
+                // প্রতিটি ডোনারের জন্য একটি কার্ড তৈরি করুন
+                donorCard.className = 'donor-card'; /* Added donor-card class for specific styling */
+                donorCard.innerHTML = `
+                    <h3 class="text-lg font-bold text-gray-800">${donor.FullName}</h3>
+                    <p class="text-gray-700">রক্তের গ্রুপ: <span class="font-semibold text-red-600">${donor.BloodGroup}</span></p>
+                    <p class="text-gray-700">ফোন: <a href="tel:${formattedPhoneNumber}" class="text-blue-600 hover:underline inline-flex items-center"><i class="fas fa-phone mr-2"></i>${formattedPhoneNumber}</a></p>
+                    <p class="text-gray-700">ঠিকানা: ${donor.Gram || ''}, ${donor.Thana || ''}, ${donor.District || ''}, ${donor.Division || ''}</p>
+                `;
+                // কার্ডের জন্য স্ট্যাগারড অ্যানিমেশন
+                setTimeout(() => {
+                    donorCard.style.opacity = '1';
+                    donorCard.style.transform = 'translateY(0)';
+                }, 100 * index); // প্রতিটি কার্ডের জন্য 100ms বিলম্ব
+
+                resultList.appendChild(donorCard);
+            });
+            searchResultsDiv.appendChild(resultList);
+        }
+    </script>
+</body>
+</html>
