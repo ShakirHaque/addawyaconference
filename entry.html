@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>তথ্য যাচাই ও প্রবেশ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-accent: #6b46c1;
+            --secondary-accent-light: rgba(107, 70, 193, 0.1);
+            --success: #10b981;
+            --success-dark: #059669;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --text-dark: #1e293b;
+            --text-medium: #475569;
+            --text-light: #64748b;
+            --bg-light: #f9fafc;
+            --bg-medium: #f1f5f9;
+            --border-light: #e2e8f0;
+            --shadow-light: rgba(0, 0, 0, 0.03);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-medium) 0%, var(--bg-light) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            color: var(--text-medium);
+            line-height: 1.6;
+            flex-direction: column;
+        }
+        .search-container {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1.5rem var(--shadow-medium);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+            color: var(--primary-dark);
+        }
+        .form-header i {
+            font-size: 1.2rem;
+        }
+        .form-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        .search-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 0.6rem;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: #fff;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+        }
+        .search-btn {
+            background: linear-gradient(120deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 0.3rem 0.8rem rgba(59, 130, 246, 0.3);
+            font-family: 'Inter', sans-serif;
+        }
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-0.15rem);
+            box-shadow: 0 0.4rem 1rem rgba(59, 130, 246, 0.4);
+        }
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(120deg, var(--text-light) 0%, var(--text-medium) 100%);
+            box-shadow: none;
+            transform: none;
+        }
+        #result-display {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.8rem;
+            border: 1px solid var(--border-light);
+            display: none;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border-light);
+            font-size: 0.9rem;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-label {
+            font-weight: 600;
+            color: var(--primary-dark);
+            flex-basis: 40%;
+        }
+        .result-value {
+            flex-basis: 60%;
+            text-align: right;
+            color: var(--text-dark);
+            word-break: break-word;
+        }
+        .serial-highlight {
+            font-size: 1.2rem;
+            color: var(--secondary-accent);
+            font-weight: 700;
+            background-color: var(--secondary-accent-light);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.4rem;
+        }
+        .status-message {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 0;
+            text-align: center;
+        }
+        .status-message.green {
+            color: var(--success-dark);
+        }
+        .status-message.red {
+            color: var(--danger);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+            gap: 1rem;
+        }
+        .entry-btn, .entry-btn-red {
+            background: linear-gradient(120deg, var(--success) 0%, var(--success-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 0.3rem 0.8rem rgba(16, 185, 129, 0.3);
+            font-family: 'Inter', sans-serif;
+        }
+        .entry-btn-red {
+            background: linear-gradient(120deg, var(--danger) 0%, var(--danger) 100%);
+            box-shadow: 0 0.3rem 0.8rem rgba(220, 38, 38, 0.3);
+        }
+        .entry-btn-red:hover {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .entry-btn:hover:not(:disabled) {
+            transform: translateY(-0.15rem);
+            box-shadow: 0 0.4rem 1rem rgba(16, 185, 129, 0.4);
+        }
+        .entry-btn:disabled, .entry-btn-red:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(120deg, var(--text-light) 0%, var(--text-medium) 100%);
+            box-shadow: none;
+            transform: none;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .spinner {
+            border: 0.35rem solid var(--border-light);
+            border-top: 0.35rem solid var(--primary);
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
+            animation: spin 0.8s linear infinite;
+        }
+        .loading-text {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-medium);
+            letter-spacing: 0.05em;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message-box {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+        }
+        .message-box.show {
+            opacity: 1;
+            display: flex;
+        }
+        .message-content {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 100%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        .message-box.show .message-content {
+            transform: scale(1);
+        }
+        .message-content h3 {
+            font-size: 1.6rem;
+            margin-bottom: 0.8rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+        .message-content p {
+            font-size: 0.95rem;
+            color: var(--text-medium);
+            margin-bottom: 1rem;
+        }
+        .message-content button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: #ffffff;
+            padding: 0.7rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            width: auto;
+            min-width: 6rem;
+            box-shadow: 0 0.3rem 0.8rem rgba(99, 102, 241, 0.3);
+            border: none;
+            font-weight: 600;
+        }
+        .message-content button:hover {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            transform: translateY(-0.1rem);
+            box-shadow: 0 0.4rem 1rem rgba(99, 102, 241, 0.4);
+        }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 480px) {
+            .search-container {
+                padding: 1.2rem;
+                margin-bottom: 1rem;
+            }
+            
+            .form-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            select, input[type="text"] {
+                padding: 0.9rem 1rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .search-btn, .entry-btn, .entry-btn-red {
+                padding: 1rem;
+            }
+            
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.3rem;
+            }
+            
+            .result-label, .result-value {
+                flex-basis: 100%;
+                text-align: left;
+            }
+            
+            .result-value {
+                padding-bottom: 0.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .message-content h3 {
+                font-size: 1.4rem;
+            }
+            
+            .message-content p {
+                font-size: 0.9rem;
+            }
+            
+            /* Keyboard avoidance for iOS */
+            @supports (-webkit-touch-callout: none) {
+                body {
+                    min-height: -webkit-fill-available;
+                }
+            }
+        }
+
+        /* Additional mobile optimizations */
+        @media (max-width: 360px) {
+            .search-container {
+                padding: 1rem;
+            }
+            
+            .form-header h2 {
+                font-size: 1.1rem;
+            }
+            
+            .serial-highlight {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Prevent text size adjustment on orientation change */
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        /* Touch-friendly elements */
+        button, select {
+            min-height: 44px;
+        }
+
+        /* Improved focus states for accessibility */
+        select:focus, input:focus, button:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <div class="form-header" style="margin-bottom: 0.5rem;">
+            <i class="fas fa-search"></i>
+            <h2>তথ্য যাচাই ও প্রবেশ</h2>
+        </div>
+        <form id="searchForm" class="search-form">
+            <div class="search-form-group">
+                <select id="searchBy">
+                    <option value="PhoneNumber">ফোন নম্বর</option>
+                    <option value="SenderNumber">টাকা প্রেরকের নম্বর</option>
+                    <option value="TrxID">ট্রান্সেকশন আইডি (TrxID)</option>
+                    <option value="UserID">ইউজার আইডি</option>
+                    <option value="Serial">সিরিয়াল নম্বর</option>
+                </select>
+                <input type="text" id="searchTerm" placeholder="অনুসন্ধান করুন..." required>
+            </div>
+            <button type="submit" id="search-button" class="search-btn">
+                <i class="fas fa-search"></i>
+                অনুসন্ধান করুন
+            </button>
+        </form>
+
+        <div id="result-display">
+            </div>
+
+        <div class="action-buttons" id="action-buttons" style="display: none;">
+            <button id="entryButton" class="entry-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                এন্ট্রি সম্পন্ন করুন
+            </button>
+        </div>
+    </div>
+    
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p class="loading-text">অনুসন্ধান করা হচ্ছে...</p>
+    </div>
+
+    <div id="messageBox" class="message-box">
+        <div class="message-content">
+            <h3 id="messageTitle"></h3>
+            <p id="messageText"></p>
+            <button id="closeMessageBox">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <script>
+        // *** গুরুত্বপূর্ণ: এখানে আপনার Google Apps Script URL টি পেস্ট করুন ***
+        const googleAppsScriptURL = 'https://script.google.com/macros/s/AKfycby3lgYS9ivZaIsd7_J8B8hWFYnNuEgZ7OeluENLyNd_JBHEeinockAzb_NweuIxmrmjUQ/exec'; 
+
+        const searchForm = document.getElementById('searchForm');
+        const searchBySelect = document.getElementById('searchBy');
+        const searchTermInput = document.getElementById('searchTerm');
+        const resultDisplay = document.getElementById('result-display');
+        const actionButtons = document.getElementById('action-buttons');
+        const entryButton = document.getElementById('entryButton');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        const closeMessageBoxButton = document.getElementById('closeMessageBox');
+
+        // Mapping for displaying Bengali labels
+        const labelMap = {
+            'Name': 'নাম',
+            'Age': 'বয়স',
+            'Gender': 'লিঙ্গ',
+            'PhoneNumber': 'ফোন নম্বর',
+            'Division': 'বিভাগ',
+            'District': 'জেলা',
+            'Thana': 'উপজেলা/থানা',
+            'Village': 'গ্রাম/ঠিকানা',
+            'PaymentMethod': 'পেমেন্ট মাধ্যম',
+            'SenderNumber': 'প্রেরকের নম্বর',
+            'TrxID': 'ট্রান্সেকশন আইডি',
+            'Volunteer': 'স্বেচ্ছাসেবক',
+            'UserID': 'ইউজার আইডি',
+            'Status': 'স্থিতি',
+            'Serial': 'সিরিয়াল',
+            'Entry': 'প্রবেশ অবস্থা'
+        };
+
+        function showMessageBox(title, messageHtml) {
+            messageTitle.textContent = title;
+            messageText.innerHTML = messageHtml;
+            messageBox.style.display = 'flex';
+            setTimeout(() => {
+                messageBox.classList.add('show');
+            }, 10);
+            
+            // Prevent body scrolling when message box is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMessageBox() {
+            messageBox.classList.remove('show');
+            messageBox.addEventListener('transitionend', function handler() {
+                messageBox.style.display = 'none';
+                messageBox.removeEventListener('transitionend', handler);
+            }, { once: true });
+            
+            // Re-enable body scrolling
+            document.body.style.overflow = 'auto';
+        }
+        
+        // --- Event Listener for Search ---
+        searchForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const searchBy = searchBySelect.value;
+            const searchTerm = searchTermInput.value.trim();
+            
+            if (!searchTerm) {
+                showMessageBox('সতর্কতা', 'অনুসন্ধানের জন্য কিছু লিখুন।');
+                return;
+            }
+
+            resultDisplay.style.display = 'none';
+            actionButtons.style.display = 'none';
+            loadingOverlay.classList.add('show');
+            loadingOverlay.querySelector('.loading-text').textContent = 'অনুসন্ধান করা হচ্ছে...';
+
+            const searchParams = new URLSearchParams({
+                searchBy: searchBy,
+                searchTerm: searchTerm,
+            });
+
+            try {
+                const response = await fetch(`${googleAppsScriptURL}?${searchParams.toString()}`);
+                const result = await response.json();
+                
+                loadingOverlay.classList.remove('show');
+
+                if (result.result === 'found') {
+                    displayResult(result.data, result.serial, result.status, result.entry);
+                } else if (result.result === 'not_found') {
+                    showMessageBox('খুঁজে পাওয়া যায়নি', 'আপনার তথ্য খুঁজে পাওয়া যায়নি।');
+                } else {
+                    showMessageBox('ভুল', 'অনুসন্ধানে একটি সমস্যা হয়েছে।');
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                loadingOverlay.classList.remove('show');
+                showMessageBox('ভুল', 'অনুসন্ধান করতে সমস্যা হয়েছে।');
+            }
+        });
+
+        // --- Event Listener for Entry Button ---
+        entryButton.addEventListener('click', async function() {
+            const searchTerm = searchTermInput.value.trim();
+            const searchBy = searchBySelect.value;
+            
+            loadingOverlay.classList.add('show');
+            loadingOverlay.querySelector('.loading-text').textContent = 'এন্ট্রি সম্পন্ন করা হচ্ছে...';
+
+            const searchParams = new URLSearchParams({
+                searchBy: searchBy,
+                searchTerm: searchTerm,
+                entryAction: 'updateEntry'
+            });
+
+            try {
+                const response = await fetch(`${googleAppsScriptURL}?${searchParams.toString()}`);
+                const result = await response.json();
+
+                loadingOverlay.classList.remove('show');
+                
+                if (result.result === 'success_entry') {
+                    showMessageBox('সফল', result.message);
+                    displayResult(result.data, result.data.Serial, result.data.Status, result.data.Entry);
+                } else if (result.result === 'already_entered') {
+                    showMessageBox('দুঃখিত', result.message);
+                } else if (result.result === 'permission_denied') {
+                    showMessageBox('প্রবেশের অনুমতি নেই', result.message);
+                } else {
+                    showMessageBox('ভুল', 'এন্ট্রি সম্পন্ন করতে সমস্যা হয়েছে।');
+                }
+            } catch (error) {
+                console.error('Entry update error:', error);
+                loadingOverlay.classList.remove('show');
+                showMessageBox('ভুল', 'এন্ট্রি সম্পন্ন করতে সমস্যা হয়েছে।');
+            }
+        });
+
+        // --- Function to display search results ---
+        function displayResult(data, serial, status, entry) {
+            resultDisplay.innerHTML = '';
+            
+            const serialItem = document.createElement('div');
+            serialItem.classList.add('result-item');
+            serialItem.innerHTML = `
+                <span class="result-label">সিরিয়াল:</span>
+                <span class="result-value serial-highlight">${serial || 'N/A'}</span>
+            `;
+            resultDisplay.appendChild(serialItem);
+
+            for (const key in data) {
+                // Skip displaying Timestamp, Serial, Status, and Entry in the main list
+                if (key === 'Timestamp' || key === 'Serial' || key === 'Status' || key === 'Entry') {
+                    continue;
+                }
+                const item = document.createElement('div');
+                item.classList.add('result-item');
+                let labelText = labelMap[key] || key;
+                item.innerHTML = `
+                    <span class="result-label">${labelText}:</span>
+                    <span class="result-value">${data[key]}</span>
+                `;
+                resultDisplay.appendChild(item);
+            }
+
+            resultDisplay.style.display = 'flex';
+            actionButtons.style.display = 'block';
+
+            if (status == '2' && entry !== 'Done') {
+                entryButton.disabled = false;
+                entryButton.textContent = 'এন্ট্রি সম্পন্ন করুন';
+                entryButton.classList.remove('entry-btn-red');
+                entryButton.classList.add('entry-btn');
+            } else if (entry === 'Done') {
+                entryButton.disabled = true;
+                entryButton.textContent = 'ইতিমধ্যেই প্রবেশ সম্পন্ন';
+                entryButton.classList.remove('entry-btn');
+                entryButton.classList.add('entry-btn-red');
+            } else {
+                entryButton.disabled = true;
+                entryButton.textContent = 'প্রবেশের অনুমতি নেই';
+                entryButton.classList.remove('entry-btn');
+                entryButton.classList.add('entry-btn-red');
+            }
+        }
+        
+        closeMessageBoxButton.addEventListener('click', closeMessageBox);
+        
+        // Close message box when clicking outside
+        messageBox.addEventListener('click', function(event) {
+            if (event.target === messageBox) {
+                closeMessageBox();
+            }
+        });
+        
+        // Handle virtual keyboard issues on mobile
+        window.addEventListener('resize', function() {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                window.setTimeout(function() {
+                    document.activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>
